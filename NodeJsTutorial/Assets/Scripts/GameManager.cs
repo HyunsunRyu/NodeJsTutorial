@@ -59,17 +59,27 @@ public class GameManager : MonoBehaviour
         return new Vector3(Random.Range(245f, 255f), 0f, Random.Range(245f, 255f)); ;
     }
 
+    public class UserData
+    {
+        public string name;
+        public string position;
+    }
+
+    public class UserDataList
+    {
+        public List<UserData> userDataList;
+    }
+
     private void OnSuccessConnect(SocketIOEvent e)
     {
-        JSONObject json = new JSONObject(e.data);
+        JSONObject data = new JSONObject(e.data.ToString());
+        JSONObject users = data.list[0];
 
-        Debug.Log(json);
-
-        //PlayerController player = playerPool.GetItem();
-        //player.InitMainCharacter(e.data["name"].ToString());
-        //string[] pos = e.data["position"].ToString().Split(new char[] { ',' }, System.StringSplitOptions.RemoveEmptyEntries);
-        //Vector3 position = new Vector3(float.Parse(pos[0]), float.Parse(pos[1]), float.Parse(pos[2]);
-        //player.transform.position = position;
+        for (int i = 0, max = users.Count; i < max; i++)
+        {
+            Debug.Log(users[i].GetField("name"));
+            Debug.Log(users[i].GetField("position"));
+        }
     }
 
     private void OnUserConnected(SocketIOEvent e)

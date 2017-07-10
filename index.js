@@ -20,17 +20,18 @@ io.on("connection", function(socket){
     };
 
     clients.push(currentUser);
-
-    var json = JSON.stringify(clients);
-    console.log(currentUser);
-    console.log(clients);
-    console.log(json);
+    clients.push(currentUser);
+    clients.push(currentUser);
 
     console.log("User : " + currentUser.name + " is connected");
     socket.broadcast.emit("USER_CONNECTED", currentUser);
     //socket.emit("SUCCESS_CONNECT",{"userList":json});
 
-    socket.emit("SUCCESS_CONNECT",json);
+    var userList = {
+      users:clients
+    };
+    //socket.emit("SUCCESS_CONNECT", userList);
+    socket.emit("SUCCESS_CONNECT", {"users":clients});
   });
 
   socket.on("MOVE", function(data){
