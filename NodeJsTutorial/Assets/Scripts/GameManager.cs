@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour
     public void Connect()
     {
         Dictionary<string, string> data = new Dictionary<string, string>();
-        data["name"] = System.Guid.NewGuid().ToString();
+        
         Vector3 position = GetRandomPosition();
         data["position"] = position.x.ToString() + "," + position.y.ToString() + "," + position.z.ToString();
         
@@ -58,28 +58,15 @@ public class GameManager : MonoBehaviour
     {
         return new Vector3(Random.Range(245f, 255f), 0f, Random.Range(245f, 255f)); ;
     }
-
-    public class UserData
-    {
-        public string name;
-        public string position;
-    }
-
-    public class UserDataList
-    {
-        public List<UserData> userDataList;
-    }
-
+    
     private void OnSuccessConnect(SocketIOEvent e)
     {
-        JSONObject data = new JSONObject(e.data.ToString());
-        JSONObject users = data.list[0];
+        JSONObject json = new JSONObject(e.data.ToString());
+        string data = json.GetField("users").ToString();
+        
+        UserDataList list = UserDataList.CreateData(data);
 
-        for (int i = 0, max = users.Count; i < max; i++)
-        {
-            Debug.Log(users[i].GetField("name"));
-            Debug.Log(users[i].GetField("position"));
-        }
+        int a = 0;
     }
 
     private void OnUserConnected(SocketIOEvent e)
