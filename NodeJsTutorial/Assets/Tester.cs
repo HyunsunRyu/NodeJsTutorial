@@ -31,6 +31,21 @@ public class Tester : MonoBehaviour
         testData.name = "test";
         string data = JsonUtility.ToJson(testData);
         socket.Emit("USER_CONNECT", new JSONObject(data));
+
+        string str = JsonUtility.ToJson(testData);
+        Debug.Log("ToJson : " + str);
+        TestData dd = JsonUtility.FromJson<TestData>(str);
+        Debug.Log(dd.name);
+
+        TestDataList dList = new TestDataList();
+        dList.users = new TestData[1];
+        dList.users[0] = dd;
+        str = JsonUtility.ToJson(dList);
+        Debug.Log("ToJson : " + str);
+        TestDataList ddd = JsonUtility.FromJson<TestDataList>(str);
+        Debug.Log(ddd == null);
+        Debug.Log(ddd.users == null);
+        Debug.Log("========================");
     }
 
     private void ErrorCallback(SocketIOEvent e)
