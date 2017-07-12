@@ -46,35 +46,45 @@ public class GameManager : MonoBehaviour
 
     public void Connect()
     {
-        Dictionary<string, string> data = new Dictionary<string, string>();
-        
-        Vector3 position = GetRandomPosition();
-        data["position"] = position.x.ToString() + "," + position.y.ToString() + "," + position.z.ToString();
-        
+        UserData newUser = new UserData();
+        newUser.id = "null";
+        newUser.name = "Test";
+        newUser.position = GetRandomPosition();
+
+        string data = JsonUtility.ToJson(newUser);
         socket.Emit("USER_CONNECT", new JSONObject(data));
+        Debug.Log("emit - user_connect : " + data);
     }
 
-    private Vector3 GetRandomPosition()
+    private float[] GetRandomPosition()
     {
-        return new Vector3(Random.Range(245f, 255f), 0f, Random.Range(245f, 255f)); ;
+        float[] pos = new float[3];
+        pos[0] = Random.Range(245f, 255f);
+        pos[1] = 0f;
+        pos[2] = Random.Range(245f, 255f);
+        return pos;
     }
     
     private void OnSuccessConnect(SocketIOEvent e)
     {
-        JSONObject json = new JSONObject(e.data.ToString());
-        string data = json.GetField("users").ToString();
-        
-        UserDataList list = UserDataList.CreateData(data);
+        Debug.Log(e.data.ToString());
 
-        int a = 0;
+        UserDataList userList = JsonUtility.FromJson<UserDataList>(e.data.ToString());
+        foreach (UserData user in userList.users)
+        {
+            Debug.Log(user.name + " // " + user.GetPostion());
+        }
+
+        //UserData player = JsonUtility.FromJson<UserData>(e.data.ToString());
+        //Debug.Log(player.name + " :: " + player.GetPostion());
     }
 
     private void OnUserConnected(SocketIOEvent e)
     {
-        PlayerController player = playerPool.GetItem();
-        player.InitMainCharacter(e.data["name"].ToString());
-        Debug.LogError(e.data);
-        player.transform.position = new Vector3(Random.Range(245f, 255f), 0f, Random.Range(245f, 255f));
+        Debug.Log(e.data.ToString());
+
+        UserData player = JsonUtility.FromJson<UserData>(e.data.ToString());
+        Debug.Log(player.name + " :: " + player.GetPostion());
     }
 
     private void OnUserDisConnected(SocketIOEvent e)

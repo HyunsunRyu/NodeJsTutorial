@@ -14,9 +14,12 @@ io.on("connection", function(socket){
   socket.on("USER_CONNECT", function(data){
 
     currentUser = {
-      name:guid(),
+      id:guid(),
+      name:data.name,
       position:data.position
     };
+
+    console.log(data.position + " : " + currentUser.position);
 
     clients.push(currentUser);
 
@@ -27,7 +30,7 @@ io.on("connection", function(socket){
 
   socket.on("MOVE", function(data){
     currentUser.position = data.position;
-    //socket.emit("MOVE", currentUser);
+    socket.emit("MOVE", currentUser);
     socket.broadcast.emit("MOVE", currentUser);
   });
 
