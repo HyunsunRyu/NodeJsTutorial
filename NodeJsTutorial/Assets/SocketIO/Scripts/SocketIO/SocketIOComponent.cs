@@ -80,19 +80,32 @@ namespace SocketIO
 
 		private object ackQueueLock;
 		private Queue<Packet> ackQueue;
-        
-        public static SocketIOComponent instance { get; private set; }
-        
-		private void Awake()
+
+		#endregion
+
+		#if SOCKET_IO_DEBUG
+		public Action<string> debugMethod;
+		#endif
+
+		#region Unity interface
+
+		public void Awake()
 		{
-            encoder = new Encoder();
+			encoder = new Encoder();
 			decoder = new Decoder();
 			parser = new Parser();
 			handlers = new Dictionary<string, List<Action<SocketIOEvent>>>();
 			ackList = new List<Ack>();
 			sid = null;
 			packetId = 0;
-            
+
+			ws = new WebSocket(url);
+			ws.OnOpen += OnOpen;
+			ws.OnMessage += OnMessage;
+			ws.OnError += OnError;
+			ws.OnClose += OnClose;
+			wsConnected = false;
+
 			eventQueueLock = new object();
 			eventQueue = new Queue<SocketIOEvent>();
 
@@ -101,18 +114,18 @@ namespace SocketIO
 
 			connected = false;
 
-#if SOCKET_IO_DEBUG
+			#if SOCKET_IO_DEBUG
 			if(debugMethod == null) { debugMethod = Debug.Log; };
-#endif
-
-            instance = this;
+			#endif
 		}
-        
+
+		public void Start()
+		{
+			if (autoConnect) { Connect(); }
+		}
+
 		public void Update()
 		{
-            if (ws == null)
-                return;
-
 			lock(eventQueueLock){ 
 				while(eventQueue.Count > 0){
 					EmitEvent(eventQueue.Dequeue());
@@ -155,19 +168,9 @@ namespace SocketIO
 
 		#region Public Interface
 		
-		public void Connect(string url = null)
+		public void Connect()
 		{
-            if (url == null)
-                url = this.url;
-
-            ws = new WebSocket(url);
-            ws.OnOpen += OnOpen;
-            ws.OnMessage += OnMessage;
-            ws.OnError += OnError;
-            ws.OnClose += OnClose;
-            wsConnected = false;
-
-            connected = true;
+			connected = true;
 
 			socketThread = new Thread(RunSocketThread);
 			socketThread.Start(ws);
