@@ -181,8 +181,8 @@ namespace SocketIO
 
 		public void Close()
 		{
-			EmitClose();
-			connected = false;
+            connected = false;
+            EmitClose();
 		}
 
 		public void On(string ev, Action<SocketIOEvent> callback)

@@ -67,8 +67,11 @@ public class MainManager : MonoBehaviour
     private void ErrorCallback(SocketIOEvent e)
     {
         Debug.Log(e.ToString());
-        //socket.Close();
-        //Disconnect();
+        if (socket.IsConnected)
+        {
+            socket.Close();
+            Disconnect();
+        }
     }
 
     private void Update()
