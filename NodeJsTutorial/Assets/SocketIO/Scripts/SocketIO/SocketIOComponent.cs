@@ -43,7 +43,6 @@ namespace SocketIO
 		#region Public Properties
 
 		public string url = "ws://127.0.0.1:4567/socket.io/?EIO=4&transport=websocket";
-		public bool autoConnect = true;
 		public int reconnectDelay = 5;
 		public float ackExpirationTime = 1800f;
 		public float pingInterval = 25f;
@@ -118,12 +117,7 @@ namespace SocketIO
 			if(debugMethod == null) { debugMethod = Debug.Log; };
 			#endif
 		}
-
-		public void Start()
-		{
-			if (autoConnect) { Connect(); }
-		}
-
+        
 		public void Update()
 		{
 			lock(eventQueueLock){ 
