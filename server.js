@@ -1,11 +1,13 @@
 var io = require('socket.io')();
 
-io.listen(4567);
+io.listen(4567, function(){
+	console.log("Server is just started");
+});
 
 io.on('connection', function(socket){
 	console.log("connected");
 
-socket.emit("SUCCESS_CONNECT");
+	socket.emit("SUCCESS_CONNECT");
 /*
 	socket.on('test1', function(){
 		socket.emit('test1', {"hello" : 'world'});
