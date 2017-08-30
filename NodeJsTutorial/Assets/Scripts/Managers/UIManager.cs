@@ -34,6 +34,14 @@ public class UIManager : Singleton<UIManager>
         OpenUI(typeof(T), false);
     }
 
+    public bool IsOpened<T>() where T : UIChild
+    {
+        System.Type type = typeof(T);
+        if (uiDic.ContainsKey(type))
+            return uiDic[type].gameObject.activeSelf;
+        return false;
+    }
+
     private void OpenUI(System.Type type, bool bOpen)
     {
         if (uiDic.ContainsKey(type))

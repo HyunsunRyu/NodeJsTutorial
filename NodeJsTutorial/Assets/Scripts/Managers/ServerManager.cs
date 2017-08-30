@@ -19,8 +19,6 @@ public class ServerManager : Singleton<ServerManager>
 
     public void Connect()
     {
-        UIManager.Instance.OpenUI<ConnectingUI>();
-
         socket.On("error", ErrorCallback);
         socket.On("SUCCESS_CONNECT", OnSuccessConnect);
         socket.On("USER_CONNECTED", OnUserConnected);
@@ -34,7 +32,7 @@ public class ServerManager : Singleton<ServerManager>
             Debug.Log("Connect : " + success.ToString());
             
             bConnectError = false;
-
+            
             StartCoroutine(CheckRetryConnectProcess());
         }));
     }
@@ -75,23 +73,24 @@ public class ServerManager : Singleton<ServerManager>
 
     private IEnumerator CheckRetryConnectProcess()
     {
-        while(!bConnectError)
-            yield return new WaitForSecondsRealtime(1f);
-
-        startConnectErrorTime = Time.realtimeSinceStartup;
-
+        bool bNeedToCheck = false;
         while (true)
         {
-            if (!bConnectError)
-                yield break;
-
-            if (Time.realtimeSinceStartup > startConnectErrorTime + tryConnectTime)
+            if (bNeedToCheck != bConnectError)
             {
-                Disconnect();
-                yield break;
+                if (!bNeedToCheck)
+                    startConnectErrorTime = Time.realtimeSinceStartup;
+
+                bNeedToCheck = bConnectError;
             }
 
-            yield return new WaitForSecondsRealtime(1f);
+            if (bNeedToCheck && Time.realtimeSinceStartup >= startConnectErrorTime + tryConnectTime)
+            {
+                bConnectError = false;
+                bNeedToCheck = false;
+                Disconnect();
+            }
+            yield return new WaitForSeconds(1f);
         }
     }
 
@@ -107,8 +106,7 @@ public class ServerManager : Singleton<ServerManager>
         Debug.Log(e.ToString());
 
         bConnectError = false;
-
-        UIManager.Instance.CloseUI<ConnectingUI>();
+        
         UIManager.Instance.CloseUI<ConnectServerUI>();
 
         UIManager.Instance.OpenUI<MainUI>();
