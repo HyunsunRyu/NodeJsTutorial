@@ -81,7 +81,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Managers\ServerManager.cs" />
+    <Compile Include="Assets\Scripts\Managers\MainManager.cs" />
     <Compile Include="Assets\Scripts\Managers\UIManager.cs" />
     <Compile Include="Assets\Scripts\UI\ConnectServerUI.cs" />
     <Compile Include="Assets\Scripts\UI\ConnectingUI.cs" />

@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class ServerManager : Singleton<ServerManager>
+public class MainManager : Singleton<MainManager>
 {
     [SerializeField] private SocketIOComponent socket;
 
@@ -15,24 +15,42 @@ public class ServerManager : Singleton<ServerManager>
     protected override void Init()
     {
         UIManager.Instance.OpenUI<ConnectServerUI>();
+        UIManager.Instance.CloseUI<MainUI>();
+
+        //StartCoroutine(Test());
+    }
+
+    private IEnumerator Test()
+    {
+        socket.Connect();
+
+        socket.On("error", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
+        socket.On("test1", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
+        socket.On("test2", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
+        socket.On("test3", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
+        yield return new WaitForSeconds(1f);
+
+        socket.Emit("test1");
+        yield return new WaitForSeconds(0.5f);
+        socket.Emit("test2");
+        yield return new WaitForSeconds(0.5f);
+        socket.Emit("test3", new JSONObject("name"), (JSONObject jo)=> { Debug.Log(jo.ToString()); });
+        yield return new WaitForSeconds(0.5f);
+        socket.Close();
     }
 
     public void Connect()
     {
         socket.On("error", ErrorCallback);
         socket.On("SUCCESS_CONNECT", OnSuccessConnect);
-        socket.On("USER_CONNECTED", OnUserConnected);
-        socket.On("USER_DISCONNECTED", OnUserDisConnected);
-        socket.On("MOVE", OnUserMove);
+        socket.On("RECEIVED_DATA", OnReceivedData);
+        socket.On("R_INPUTDATE", OnSuccessSendData);
 
         socket.Connect();
 
         StartCoroutine(WaitConnectProcess(3f, (bool success) =>
         {
-            Debug.Log("Connect : " + success.ToString());
-            
             bConnectError = false;
-            
             StartCoroutine(CheckRetryConnectProcess());
         }));
     }
@@ -41,13 +59,13 @@ public class ServerManager : Singleton<ServerManager>
     {
         socket.Off("error", ErrorCallback);
         socket.Off("SUCCESS_CONNECT", OnSuccessConnect);
-        socket.Off("USER_CONNECTED", OnUserConnected);
-        socket.Off("USER_DISCONNECTED", OnUserDisConnected);
-        socket.Off("MOVE", OnUserMove);
+        socket.Off("RECEIVED_DATA", OnReceivedData);
+        socket.Off("R_INPUTDATE", OnSuccessSendData);
 
         socket.Close();
 
-        UIManager.Instance.CloseUI<ConnectingUI>();
+        if (UIManager.Instance.IsOpened<ConnectingUI>())
+            UIManager.Instance.CloseUI<ConnectingUI>();
     }
 
     private IEnumerator WaitConnectProcess(float delayTime, System.Action<bool> connect)
@@ -82,6 +100,8 @@ public class ServerManager : Singleton<ServerManager>
                     startConnectErrorTime = Time.realtimeSinceStartup;
 
                 bNeedToCheck = bConnectError;
+                if (!UIManager.Instance.IsOpened<ConnectingUI>())
+                    UIManager.Instance.OpenUI<ConnectingUI>();
             }
 
             if (bNeedToCheck && Time.realtimeSinceStartup >= startConnectErrorTime + tryConnectTime)
@@ -96,31 +116,34 @@ public class ServerManager : Singleton<ServerManager>
 
     private void ErrorCallback(SocketIOEvent e)
     {
-        Debug.Log(e.ToString());
+        //Debug.Log(e.ToString());
         
-        bConnectError = true;
+        //bConnectError = true;
     }
     
     private void OnSuccessConnect(SocketIOEvent e)
     {
-        Debug.Log(e.ToString());
-
         bConnectError = false;
-        
-        UIManager.Instance.CloseUI<ConnectServerUI>();
 
-        UIManager.Instance.OpenUI<MainUI>();
+        if (UIManager.Instance.IsOpened<ConnectServerUI>())
+            UIManager.Instance.CloseUI<ConnectServerUI>();
+        if (!UIManager.Instance.IsOpened<MainUI>())
+            UIManager.Instance.OpenUI<MainUI>();
+
+        UIManager.Instance.GetUI<MainUI>().UpdateUI();
     }
 
-    private void OnUserConnected(SocketIOEvent e)
+    private void OnReceivedData(SocketIOEvent e)
     {
     }
 
-    private void OnUserDisConnected(SocketIOEvent e)
+    public void SendData()
     {
+        socket.Emit("INPUTDATE");
     }
 
-    private void OnUserMove(SocketIOEvent e)
+    private void OnSuccessSendData(SocketIOEvent e)
     {
+        Debug.Log(e.ToString());
     }
 }

@@ -51,4 +51,12 @@ public class UIManager : Singleton<UIManager>
                 uiDic[type].UpdateUI();
         }
     }
+
+    public T GetUI<T>() where T : UIChild
+    {
+        System.Type type = typeof(T);
+        if (uiDic.ContainsKey(type))
+            return uiDic[type] as T;
+        return null;
+    }
 }

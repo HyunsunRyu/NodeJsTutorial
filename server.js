@@ -1,29 +1,39 @@
 var io = require('socket.io')();
+var date = require('node.date-time');
 
-io.listen(4567, function(){
-	console.log("Server is just started");
-});
+io.listen(4567);
 
 io.on('connection', function(socket){
 	console.log("connected");
 
-	socket.emit("SUCCESS_CONNECT");
-/*
-	socket.on('test1', function(){
-		socket.emit('test1', {"hello" : 'world'});
-	});
-
-	socket.on('test2', function(){
-		socket.emit('test2');
-	});
-
-  socket.on('test3', function(name, fn){
-    fn('woot');
-  });
-*/
-  socket.on('disconnect', function(data){
+	socket.on('disconnect', function(data){
     console.log("disconnected");
-  })
+  });
+/*
+	socket.on('INPUTDATE', function(data){
+		//var strDate = new Date().format('Y-M-dd H:m:S');
+		//console.log(strDate);
+		//socket.emit("R_INPUTDATE", strDate);
+		socket.emit("R_INPUTDATE", "Hi");
+		//문제 : emit으로 보내는 데이터는 반드시 Json형태여야 한다. //
+	});
+
+	socket.emit("SUCCESS_CONNECT");
+*/
+
+		socket.on('test1', function(){
+			//socket.emit('test1', {"hello" : 'world'});
+			socket.emit('test1', "Hello");
+		});
+
+		socket.on('test2', function(){
+			socket.emit('test2');
+		});
+
+	  socket.on('test3', function(name, fn){
+	    fn('woot');
+	  });
+
 });
 
 //guid 생성하는 코드. //

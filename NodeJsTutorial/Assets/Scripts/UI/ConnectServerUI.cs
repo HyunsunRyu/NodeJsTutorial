@@ -6,6 +6,6 @@ public class ConnectServerUI : UIChild
 {
     public void OnClickConnectButton()
     {
-        ServerManager.Instance.Connect();
+        MainManager.Instance.Connect();
     }
 }
