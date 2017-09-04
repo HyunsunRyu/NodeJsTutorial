@@ -1,39 +1,39 @@
 var io = require('socket.io')();
+var sqlite3 = require('sqlite3').verbose();
 var date = require('node.date-time');
+var mainDB = 'data/mydb';
+
+function getStatus(database, callback){
+    var db = new sqlite3.Database(database);
+    // Get the last record
+    db.get("SELECT * FROM status ORDER BY id DESC LIMIT 1", function(err, all) {
+        console.log("Current status..."+all.status);
+        callback(err, all);
+    });
+    db.close();
+}
+function setStatus(database, status){
+    console.log("Set Status..."+status);
+    var db = new sqlite3.Database(database);
+    db.run("INSERT INTO status(status, time) VALUES(?,?)", status, Date.now());
+    db.close();
+}
 
 io.listen(4567);
 
 io.on('connection', function(socket){
 	console.log("connected");
 
-	socket.on('disconnect', function(data){
-    console.log("disconnected");
-  });
-/*
-	socket.on('INPUTDATE', function(data){
-		//var strDate = new Date().format('Y-M-dd H:m:S');
-		//console.log(strDate);
-		//socket.emit("R_INPUTDATE", strDate);
-		socket.emit("R_INPUTDATE", "Hi");
-		//문제 : emit으로 보내는 데이터는 반드시 Json형태여야 한다. //
+	socket.on('INPUTTIME', function(data){
+		var inputTime = new Date().format('Y-M-dd H:m:S');
+		socket.emit("INPUTTIME", {"time" : inputTime});
 	});
 
 	socket.emit("SUCCESS_CONNECT");
-*/
 
-		socket.on('test1', function(){
-			//socket.emit('test1', {"hello" : 'world'});
-			socket.emit('test1', "Hello");
-		});
-
-		socket.on('test2', function(){
-			socket.emit('test2');
-		});
-
-	  socket.on('test3', function(name, fn){
-	    fn('woot');
-	  });
-
+	socket.on('disconnect', function(data){
+		console.log("disconnected");
+	});
 });
 
 //guid 생성하는 코드. //

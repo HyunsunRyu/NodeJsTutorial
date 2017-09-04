@@ -16,35 +16,13 @@ public class MainManager : Singleton<MainManager>
     {
         UIManager.Instance.OpenUI<ConnectServerUI>();
         UIManager.Instance.CloseUI<MainUI>();
-
-        //StartCoroutine(Test());
-    }
-
-    private IEnumerator Test()
-    {
-        socket.Connect();
-
-        socket.On("error", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
-        socket.On("test1", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
-        socket.On("test2", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
-        socket.On("test3", (SocketIOEvent e) => { Debug.Log(e.ToString()); });
-        yield return new WaitForSeconds(1f);
-
-        socket.Emit("test1");
-        yield return new WaitForSeconds(0.5f);
-        socket.Emit("test2");
-        yield return new WaitForSeconds(0.5f);
-        socket.Emit("test3", new JSONObject("name"), (JSONObject jo)=> { Debug.Log(jo.ToString()); });
-        yield return new WaitForSeconds(0.5f);
-        socket.Close();
     }
 
     public void Connect()
     {
         socket.On("error", ErrorCallback);
         socket.On("SUCCESS_CONNECT", OnSuccessConnect);
-        socket.On("RECEIVED_DATA", OnReceivedData);
-        socket.On("R_INPUTDATE", OnSuccessSendData);
+        socket.On("INPUTTIME", OnSuccessSendData);
 
         socket.Connect();
 
@@ -59,8 +37,7 @@ public class MainManager : Singleton<MainManager>
     {
         socket.Off("error", ErrorCallback);
         socket.Off("SUCCESS_CONNECT", OnSuccessConnect);
-        socket.Off("RECEIVED_DATA", OnReceivedData);
-        socket.Off("R_INPUTDATE", OnSuccessSendData);
+        socket.Off("INPUTTIME", OnSuccessSendData);
 
         socket.Close();
 
@@ -116,9 +93,7 @@ public class MainManager : Singleton<MainManager>
 
     private void ErrorCallback(SocketIOEvent e)
     {
-        //Debug.Log(e.ToString());
-        
-        //bConnectError = true;
+        bConnectError = true;
     }
     
     private void OnSuccessConnect(SocketIOEvent e)
@@ -132,18 +107,14 @@ public class MainManager : Singleton<MainManager>
 
         UIManager.Instance.GetUI<MainUI>().UpdateUI();
     }
-
-    private void OnReceivedData(SocketIOEvent e)
-    {
-    }
-
+    
     public void SendData()
     {
-        socket.Emit("INPUTDATE");
+        socket.Emit("INPUTTIME");
     }
 
     private void OnSuccessSendData(SocketIOEvent e)
     {
-        Debug.Log(e.ToString());
+        InputTime inputTime = JsonUtility.FromJson<InputTime>(e.data.ToString());
     }
 }
