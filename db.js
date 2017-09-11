@@ -9,11 +9,17 @@ exports.InsertTime = function(time)
       if(err){
         return console.log(err.message);
       }
-      console.log("Length : " + rows);
+      console.log("input time : " + time);
+    });
+    db.get('select count(data) as cnt from testDB', function(err, rows){
+      if(err){
+        console.log("errrrrr!!");
+        return console.log(err.message);
+      }
+      console.log("now db count is : " + rows.cnt);
     });
   });
   db.close();
-  console.log(time);
 }
 
 exports.GetList = function(){
@@ -32,4 +38,17 @@ exports.GetList = function(){
     });
   });
   db.close();
+}
+
+exports.GetCount = function(){
+  db.serialize(function(){
+    db.get('select count(*) as cnt from testDB', function(err, rows){
+      if(err){
+        console.log("errrrrrrrr!!!");
+        return console.log(err.message);
+      }
+      //var row = rows[0].cnt;
+      console.log(rows.cnt + "=============");
+    })
+  });
 }

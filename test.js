@@ -5,3 +5,5 @@ var inputTime = new Date().format('Y-M-dd H:m:S');
 db.InsertTime(inputTime);
 
 //db.GetList();
+
+//db.GetCount();
