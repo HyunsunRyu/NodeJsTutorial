@@ -10,16 +10,19 @@ exports.InsertTime = function(time)
         return console.log(err.message);
       }
       console.log("input time : " + time);
-    });
-    db.get('select count(data) as cnt from testDB', function(err, rows){
-      if(err){
-        console.log("errrrrr!!");
-        return console.log(err.message);
-      }
-      console.log("now db count is : " + rows.cnt);
+
+      var rowCount = 0;
+      db.get('select count(rowid) as cnt from testDB', function(err, rows){
+        if(err){
+          console.log("errrrrr!!");
+          return console.log(err.message);
+        }
+        console.log("now db count is : " + rows.cnt);
+        rowCount = rows.cnt;
+        db.close();
+      });
     });
   });
-  db.close();
 }
 
 exports.GetList = function(){
@@ -29,15 +32,40 @@ exports.GetList = function(){
     db.all('select rowid as id, data from testDB order by id desc limit 10', function(err, rows){
       if(err){
         console.log("errrrrrrrr!!!");
-        return console.log(err.message);
+        return console.error(err.message);
       }
 
       for(var i=0, len=rows.length; i<len; i++){
         console.log(rows[i].id + " : " + rows[i].data);
       }
     });
+    db.close();
   });
-  db.close();
+}
+
+exports.DeleteTop = function(){
+  db.serialize(function(){
+    var id;
+    var data;
+    db.get('select rowid as id, data from testDB order by rowid asc limit 1', function(err, row){
+      if(err){
+        console.log('Error');
+        return console.error(err.message);
+      }
+      id = row.id;
+      data = row.data;
+
+      db.run("delete from testDB where rowid=(?)", id, function(err){
+        if(err){
+          console.log('error');
+          return console.error(err.message);
+        }
+        console.log('complete to delete ' + id + " : " + data);
+        exports.GetCount();
+        db.close();
+      });
+    });
+  });
 }
 
 exports.GetCount = function(){
@@ -49,6 +77,6 @@ exports.GetCount = function(){
       }
       //var row = rows[0].cnt;
       console.log(rows.cnt + "=============");
-    })
+    });
   });
 }
