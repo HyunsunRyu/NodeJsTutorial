@@ -1,28 +1,110 @@
 const sqlite3 = require('sqlite3').verbose();
-let db = new sqlite3.Database('./db/sample.db');
+const dbPath = './db/sample.db';
+const tableName = 'testDB';
+const maxDataCount = 5;
+//var database = new sqlite3.Database('./db/sample.db');
 
-exports.InsertTime = function(time)
+function GetDB(){
+  return new sqlite3.Database(dbPath).run('create table if not exists testDB(data varchar(50))');
+}
+
+exports.InsertTime = function(data)
 {
-  db.serialize(function(){
-    db.run('create table if not exists testDB(data varchar(50))');
-    db.run('insert into testDB(data) values(?)', [time], function(err, rows){
-      if(err){
-        return console.log(err.message);
-      }
-      console.log("input time : " + time);
+  //get db.
+  var db = GetDB();
 
-      var rowCount = 0;
-      db.get('select count(rowid) as cnt from testDB', function(err, rows){
-        if(err){
-          console.log("errrrrr!!");
-          return console.log(err.message);
-        }
-        console.log("now db count is : " + rows.cnt);
-        rowCount = rows.cnt;
-        db.close();
-      });
+  //insert the present time data to db.
+  db.serialize(function(){
+    InsertTime(db, data, ()=>{
+      db.close();
+      console.log('db is closed');
     });
   });
+
+  //the function to insert the present time data.
+  function InsertTime(database, time, closer){
+    database.run('insert into '+ tableName +'(data) values(?)', [time], function(err, rows){
+      if(err){
+        console.error(err.message);
+        closer();
+      }
+      else{
+        console.log('success to input the time : ' + time);
+
+        //if it succeeded, need to check the count of data in db and then
+        //delete the oldest data if its full.
+        GetDataCount(database, (dataCount)=>{
+          //error.
+          if(dataCount < 0){
+            console.error('error');
+          }
+          //its full
+          if(dataCount > maxDataCount){
+            console.log('its over ' + maxDataCount);
+            DeleteTopData(database, dataCount - maxDataCount, closer);
+          }
+          else{
+            if(dataCount < 0){
+              console.error('error');
+            }
+            else{
+              console.log('its not full. tabla has just ' + dataCount + ' rows');
+            }
+            closer();
+          }
+        });
+      }
+    });
+  }
+
+  function GetDataCount(database, callback){
+    database.get('select count(rowid) as cnt from testDB', function(err, rows){
+      if(err){
+        console.error(err.message);;
+        callback(-1);
+      }
+      else{
+        callback(rows.cnt);
+      }
+    });
+  }
+
+  function DeleteTopData(database, deleteCount, closer){
+    console.log('delete top data ' + deleteCount);
+    db.all('select rowid as id, data from testDB order by rowid asc limit ' + deleteCount, function(err, row){
+      if(err){
+        console.log('Error');
+        return console.error(err.message);
+      }
+
+      var index = 0;
+      Delete(database, index, deleteCount, row, ()=>{
+        console.log('success to delete all');
+        closer();
+      });
+
+      function Delete(database, idx, max, row, closer){
+        if(idx >= max){
+          closer();
+          return;
+        }
+        var id = row[idx].id;
+        var data = row[idx].data;
+        console.log("delete (" + id + "/" + data + ")");
+
+        database.run("delete from testDB where rowid=(?)", id, function(err){
+          if(err){
+            console.error(err.message);
+            closer();
+            return;
+          }
+          else{
+            Delete(database, idx + 1, max, row, closer);
+          }
+        });
+      }
+    });
+  }
 }
 
 exports.GetList = function(){
